@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'DCT_VERSION', '1.2.0' );
+define( 'DCT_VERSION', '1.2.2' );
 define( 'DCT_PLUGIN_FILE', __FILE__ );
 define( 'DCT_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'DCT_PLUGIN_URL', plugin_dir_url( __FILE__ ) );

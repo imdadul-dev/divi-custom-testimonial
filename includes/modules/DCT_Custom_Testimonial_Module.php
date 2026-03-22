@@ -205,52 +205,57 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 	public function get_fields() {
 		return array(
 			'slides'              => array(
-				'label'           => esc_html__( 'Testimonials', 'divi-custom-testimonial' ),
-				'description'     => esc_html__( 'Add slides with the green + button. Each slide: image, testimonial text, author, and Read More button.', 'divi-custom-testimonial' ),
-				'type'            => 'sortable_list',
-				'option_category' => 'basic_option',
-				'toggle_slug'     => 'main_content',
-				'right_actions'   => 'copy|delete|move',
-				'default'         => wp_json_encode(
+				'label'             => esc_html__( 'Testimonials', 'divi-custom-testimonial' ),
+				'description'       => esc_html__( 'Add slides with the green + button. Each slide: image, testimonial text, author, and Read More button.', 'divi-custom-testimonial' ),
+				'type'              => 'sortable_list',
+				'option_category'   => 'basic_option',
+				'tab_slug'          => 'general',
+				'toggle_slug'       => 'main_content',
+				'right_actions'     => 'copy|delete|move',
+				/*
+				 * Inner keys MUST NOT use names like "image", "author", or "quote" — they clash with
+				 * Divi's own module attributes and the Content fields fail to render (see ET_Builder_Element).
+				 */
+				'default'           => wp_json_encode(
 					array(
 						array(
-							'image'          => '',
-							'quote'          => '',
-							'author'         => '',
-							'button_text'    => 'Read More',
-							'button_url'     => '',
-							'url_new_window' => 'off',
+							'tst_image'          => '',
+							'tst_quote'          => '',
+							'tst_author'         => '',
+							'tst_button_text'    => 'Read More',
+							'tst_button_url'     => '',
+							'tst_url_new_window' => 'off',
 						),
 					)
 				),
-				'fields'          => array(
-					'image'        => array(
+				'fields'            => array(
+					'tst_image'          => array(
 						'label'           => esc_html__( 'Image', 'divi-custom-testimonial' ),
 						'type'            => 'upload',
 						'option_category' => 'basic_option',
 					),
-					'quote'        => array(
+					'tst_quote'          => array(
 						'label'           => esc_html__( 'Testimonial Text', 'divi-custom-testimonial' ),
 						'type'            => 'textarea',
 						'option_category' => 'basic_option',
 					),
-					'author'       => array(
+					'tst_author'         => array(
 						'label'           => esc_html__( 'Author Name', 'divi-custom-testimonial' ),
 						'type'            => 'text',
 						'option_category' => 'basic_option',
 					),
-					'button_text'  => array(
+					'tst_button_text'    => array(
 						'label'           => esc_html__( 'Read More Button Text', 'divi-custom-testimonial' ),
 						'type'            => 'text',
 						'option_category' => 'basic_option',
 						'default'         => 'Read More',
 					),
-					'button_url'   => array(
+					'tst_button_url'     => array(
 						'label'           => esc_html__( 'Read More Button Link', 'divi-custom-testimonial' ),
 						'type'            => 'text',
 						'option_category' => 'basic_option',
 					),
-					'url_new_window' => array(
+					'tst_url_new_window' => array(
 						'label'            => esc_html__( 'Button Link Target', 'divi-custom-testimonial' ),
 						'type'             => 'select',
 						'option_category'  => 'basic_option',
@@ -485,6 +490,7 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 				'label'           => esc_html__( 'Show Arrows', 'divi-custom-testimonial' ),
 				'type'            => 'yes_no_button',
 				'option_category' => 'configuration',
+				'tab_slug'        => 'general',
 				'toggle_slug'     => 'navigation',
 				'options'         => array(
 					'on'  => esc_html__( 'Yes', 'divi-custom-testimonial' ),
@@ -496,6 +502,7 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 				'label'           => esc_html__( 'Arrow Color', 'divi-custom-testimonial' ),
 				'type'            => 'color-alpha',
 				'option_category' => 'field_configuration',
+				'tab_slug'        => 'general',
 				'toggle_slug'     => 'navigation',
 				'default'         => '#c8c8c8',
 				'mobile_options'  => true,
@@ -505,6 +512,7 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 				'description'     => esc_html__( 'How the previous/next controls look.', 'divi-custom-testimonial' ),
 				'type'            => 'select',
 				'option_category' => 'configuration',
+				'tab_slug'        => 'general',
 				'toggle_slug'     => 'navigation',
 				'options'         => array(
 					'chevron' => esc_html__( 'Chevron (filled)', 'divi-custom-testimonial' ),
@@ -1025,6 +1033,47 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 	}
 
 	/**
+	 * Read a slide row value. New keys use tst_* prefix; legacy keys (image, quote, …) still work for old saves.
+	 *
+	 * @param array  $slide   One slide from sortable_list JSON.
+	 * @param string $new_key Preferred key (e.g. tst_quote).
+	 * @param string $old_key Legacy key (e.g. quote).
+	 * @param string $default Default when both missing.
+	 * @return string
+	 */
+	protected function dct_slide_prop( $slide, $new_key, $old_key, $default = '' ) {
+		if ( ! is_array( $slide ) ) {
+			return $default;
+		}
+		if ( array_key_exists( $new_key, $slide ) ) {
+			return (string) $slide[ $new_key ];
+		}
+		if ( array_key_exists( $old_key, $slide ) ) {
+			return (string) $slide[ $old_key ];
+		}
+		return $default;
+	}
+
+	/**
+	 * New-tab flag for a slide (tst_url_new_window or url_new_window).
+	 *
+	 * @param array $slide Slide row.
+	 * @return bool
+	 */
+	protected function dct_slide_new_tab( $slide ) {
+		if ( ! is_array( $slide ) ) {
+			return false;
+		}
+		if ( array_key_exists( 'tst_url_new_window', $slide ) ) {
+			return 'on' === $slide['tst_url_new_window'];
+		}
+		if ( array_key_exists( 'url_new_window', $slide ) ) {
+			return 'on' === $slide['url_new_window'];
+		}
+		return false;
+	}
+
+	/**
 	 * Get slides from props.
 	 *
 	 * @return array<int, array<string, string>>
@@ -1090,12 +1139,15 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 
 		$slides_html = '';
 		foreach ( $slides as $index => $slide ) {
-			$image       = isset( $slide['image'] ) ? $slide['image'] : '';
-			$quote       = isset( $slide['quote'] ) ? $slide['quote'] : '';
-			$author      = isset( $slide['author'] ) ? $slide['author'] : '';
-			$btn_text    = isset( $slide['button_text'] ) && $slide['button_text'] !== '' ? $slide['button_text'] : 'Read More';
-			$btn_url     = isset( $slide['button_url'] ) ? $slide['button_url'] : '';
-			$url_target  = isset( $slide['url_new_window'] ) && 'on' === $slide['url_new_window'] ? '_blank' : '_self';
+			$image    = $this->dct_slide_prop( $slide, 'tst_image', 'image', '' );
+			$quote    = $this->dct_slide_prop( $slide, 'tst_quote', 'quote', '' );
+			$author   = $this->dct_slide_prop( $slide, 'tst_author', 'author', '' );
+			$btn_text = $this->dct_slide_prop( $slide, 'tst_button_text', 'button_text', '' );
+			if ( '' === $btn_text ) {
+				$btn_text = 'Read More';
+			}
+			$btn_url    = $this->dct_slide_prop( $slide, 'tst_button_url', 'button_url', '' );
+			$url_target = $this->dct_slide_new_tab( $slide ) ? '_blank' : '_self';
 			$rel         = '_blank' === $url_target ? 'noopener noreferrer' : '';
 
 			$img_tag = '';
