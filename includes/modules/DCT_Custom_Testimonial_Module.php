@@ -18,7 +18,13 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 		$this->name      = esc_html__( 'Custom Testimonial', 'divi-custom-testimonial' );
 		$this->plural    = esc_html__( 'Custom Testimonials', 'divi-custom-testimonial' );
 		$this->slug      = 'dct_custom_testimonial';
-		$this->vb_support = 'on';
+		/**
+		 * Partial VB: server-rendered preview (no React bundle). Full `on` expects a JS module
+		 * and can show React/minified code or blank UI in the Visual Builder.
+		 *
+		 * @link https://www.elegantthemes.com/documentation/developers/divi-module/compatibility-levels/
+		 */
+		$this->vb_support = 'partial';
 
 		$this->settings_modal_toggles = array(
 			'general'  => array(
@@ -28,7 +34,7 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 						'priority' => 1,
 					),
 					'navigation'   => array(
-						'title'    => esc_html__( 'Navigation', 'divi-custom-testimonial' ),
+						'title'    => esc_html__( 'Arrows (Prev / Next)', 'divi-custom-testimonial' ),
 						'priority' => 2,
 					),
 				),
@@ -200,29 +206,31 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 		return array(
 			'slides'              => array(
 				'label'           => esc_html__( 'Testimonials', 'divi-custom-testimonial' ),
+				'description'     => esc_html__( 'Add one or more slides. Each slide: testimonial text, author, image (left column on desktop), and Read More label + link.', 'divi-custom-testimonial' ),
 				'type'            => 'sortable_list',
 				'option_category' => 'basic_option',
 				'toggle_slug'     => 'main_content',
 				'fields'          => array(
 					'image'        => array(
-						'label' => esc_html__( 'Image', 'divi-custom-testimonial' ),
-						'type'  => 'upload',
+						'label'       => esc_html__( 'Image', 'divi-custom-testimonial' ),
+						'description' => esc_html__( 'Shown in the left column when layout is Image Left.', 'divi-custom-testimonial' ),
+						'type'        => 'upload',
 					),
 					'quote'        => array(
-						'label' => esc_html__( 'Quote', 'divi-custom-testimonial' ),
-						'type'  => 'textarea',
+						'label'       => esc_html__( 'Testimonial Text', 'divi-custom-testimonial' ),
+						'type'        => 'textarea',
 					),
 					'author'       => array(
-						'label' => esc_html__( 'Author / Organization', 'divi-custom-testimonial' ),
+						'label' => esc_html__( 'Author Name', 'divi-custom-testimonial' ),
 						'type'  => 'text',
 					),
 					'button_text'  => array(
-						'label'   => esc_html__( 'Button Text', 'divi-custom-testimonial' ),
-						'type'    => 'text',
-						'default' => 'Read More',
+						'label'       => esc_html__( 'Read More — Button Text', 'divi-custom-testimonial' ),
+						'type'        => 'text',
+						'default'     => 'Read More',
 					),
 					'button_url'   => array(
-						'label'           => esc_html__( 'Button URL', 'divi-custom-testimonial' ),
+						'label'           => esc_html__( 'Read More — Link (URL)', 'divi-custom-testimonial' ),
 						'type'            => 'text',
 						'option_category' => 'basic_option',
 					),
@@ -459,6 +467,7 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 			),
 			'show_arrows'         => array(
 				'label'           => esc_html__( 'Show Arrows', 'divi-custom-testimonial' ),
+				'description'     => esc_html__( 'Prev/next controls appear only when you have more than one testimonial slide.', 'divi-custom-testimonial' ),
 				'type'            => 'yes_no_button',
 				'option_category' => 'configuration',
 				'toggle_slug'     => 'navigation',
