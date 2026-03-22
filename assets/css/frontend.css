@@ -309,6 +309,30 @@
 	transform: rotate(-135deg);
 }
 
+/* Arrow style: thin angle (matches screenshot-style lines). */
+.dct-nav--style-angle .dct-nav__angle {
+	display: block;
+	width: 0.55em;
+	height: 0.55em;
+	border-left: 2px solid currentColor;
+	border-bottom: 2px solid currentColor;
+	transform: rotate(45deg);
+}
+
+.dct-nav--style-angle.dct-nav--next .dct-nav__angle,
+.dct-nav--style-angle .dct-nav__angle--next {
+	transform: rotate(-135deg);
+}
+
+/* Arrow style: minimal ‹ › */
+.dct-nav--style-minimal .dct-nav__minimal {
+	display: block;
+	font-size: 1.65em;
+	line-height: 1;
+	font-weight: 300;
+	font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
 .dct-empty {
 	padding: 1.5rem;
 	text-align: center;

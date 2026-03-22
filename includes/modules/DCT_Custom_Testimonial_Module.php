@@ -17,10 +17,10 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 	public function init() {
 		$this->name      = esc_html__( 'Custom Testimonial', 'divi-custom-testimonial' );
 		$this->plural    = esc_html__( 'Custom Testimonials', 'divi-custom-testimonial' );
-		$this->slug      = 'dct_custom_testimonial';
+		$this->slug       = 'dct_custom_testimonial';
 		/**
-		 * Partial VB: server-rendered preview (no React bundle). Full `on` expects a JS module
-		 * and can show React/minified code or blank UI in the Visual Builder.
+		 * Use "partial" so the Visual Builder previews via PHP (AJAX). "on" requires a bundled
+		 * React module; without it the VB shows broken minified JS (createElement/rawContentProcessor).
 		 *
 		 * @link https://www.elegantthemes.com/documentation/developers/divi-module/compatibility-levels/
 		 */
@@ -34,7 +34,7 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 						'priority' => 1,
 					),
 					'navigation'   => array(
-						'title'    => esc_html__( 'Arrows (Prev / Next)', 'divi-custom-testimonial' ),
+						'title'    => esc_html__( 'Navigation', 'divi-custom-testimonial' ),
 						'priority' => 2,
 					),
 				),
@@ -206,31 +206,47 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 		return array(
 			'slides'              => array(
 				'label'           => esc_html__( 'Testimonials', 'divi-custom-testimonial' ),
-				'description'     => esc_html__( 'Add one or more slides. Each slide: testimonial text, author, image (left column on desktop), and Read More label + link.', 'divi-custom-testimonial' ),
+				'description'     => esc_html__( 'Add slides with the green + button. Each slide: image, testimonial text, author, and Read More button.', 'divi-custom-testimonial' ),
 				'type'            => 'sortable_list',
 				'option_category' => 'basic_option',
 				'toggle_slug'     => 'main_content',
+				'right_actions'   => 'copy|delete|move',
+				'default'         => wp_json_encode(
+					array(
+						array(
+							'image'          => '',
+							'quote'          => '',
+							'author'         => '',
+							'button_text'    => 'Read More',
+							'button_url'     => '',
+							'url_new_window' => 'off',
+						),
+					)
+				),
 				'fields'          => array(
 					'image'        => array(
-						'label'       => esc_html__( 'Image', 'divi-custom-testimonial' ),
-						'description' => esc_html__( 'Shown in the left column when layout is Image Left.', 'divi-custom-testimonial' ),
-						'type'        => 'upload',
+						'label'           => esc_html__( 'Image', 'divi-custom-testimonial' ),
+						'type'            => 'upload',
+						'option_category' => 'basic_option',
 					),
 					'quote'        => array(
-						'label'       => esc_html__( 'Testimonial Text', 'divi-custom-testimonial' ),
-						'type'        => 'textarea',
+						'label'           => esc_html__( 'Testimonial Text', 'divi-custom-testimonial' ),
+						'type'            => 'textarea',
+						'option_category' => 'basic_option',
 					),
 					'author'       => array(
-						'label' => esc_html__( 'Author Name', 'divi-custom-testimonial' ),
-						'type'  => 'text',
+						'label'           => esc_html__( 'Author Name', 'divi-custom-testimonial' ),
+						'type'            => 'text',
+						'option_category' => 'basic_option',
 					),
 					'button_text'  => array(
-						'label'       => esc_html__( 'Read More — Button Text', 'divi-custom-testimonial' ),
-						'type'        => 'text',
-						'default'     => 'Read More',
+						'label'           => esc_html__( 'Read More Button Text', 'divi-custom-testimonial' ),
+						'type'            => 'text',
+						'option_category' => 'basic_option',
+						'default'         => 'Read More',
 					),
 					'button_url'   => array(
-						'label'           => esc_html__( 'Read More — Link (URL)', 'divi-custom-testimonial' ),
+						'label'           => esc_html__( 'Read More Button Link', 'divi-custom-testimonial' ),
 						'type'            => 'text',
 						'option_category' => 'basic_option',
 					),
@@ -467,7 +483,6 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 			),
 			'show_arrows'         => array(
 				'label'           => esc_html__( 'Show Arrows', 'divi-custom-testimonial' ),
-				'description'     => esc_html__( 'Prev/next controls appear only when you have more than one testimonial slide.', 'divi-custom-testimonial' ),
 				'type'            => 'yes_no_button',
 				'option_category' => 'configuration',
 				'toggle_slug'     => 'navigation',
@@ -484,6 +499,19 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 				'toggle_slug'     => 'navigation',
 				'default'         => '#c8c8c8',
 				'mobile_options'  => true,
+			),
+			'arrow_style'         => array(
+				'label'           => esc_html__( 'Arrow Style', 'divi-custom-testimonial' ),
+				'description'     => esc_html__( 'How the previous/next controls look.', 'divi-custom-testimonial' ),
+				'type'            => 'select',
+				'option_category' => 'configuration',
+				'toggle_slug'     => 'navigation',
+				'options'         => array(
+					'chevron' => esc_html__( 'Chevron (filled)', 'divi-custom-testimonial' ),
+					'angle'   => esc_html__( 'Angle (thin lines)', 'divi-custom-testimonial' ),
+					'minimal' => esc_html__( 'Minimal (‹ ›)', 'divi-custom-testimonial' ),
+				),
+				'default'         => 'chevron',
 			),
 			'icon_size'           => array(
 				'label'           => esc_html__( 'Quote Icon Size', 'divi-custom-testimonial' ),
@@ -1120,11 +1148,38 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 			);
 		}
 
+		$arrow_style = isset( $this->props['arrow_style'] ) ? $this->props['arrow_style'] : 'chevron';
+		$arrow_styles = array( 'chevron', 'angle', 'minimal' );
+		if ( ! in_array( $arrow_style, $arrow_styles, true ) ) {
+			$arrow_style = 'chevron';
+		}
+
 		$prev_btn = '';
 		$next_btn = '';
 		if ( 'on' === $show_arrows && count( $slides ) > 1 ) {
-			$prev_btn = '<button type="button" class="dct-nav dct-nav--prev" aria-label="' . esc_attr__( 'Previous testimonial', 'divi-custom-testimonial' ) . '"><span class="dct-nav__chev" aria-hidden="true"></span></button>';
-			$next_btn = '<button type="button" class="dct-nav dct-nav--next" aria-label="' . esc_attr__( 'Next testimonial', 'divi-custom-testimonial' ) . '"><span class="dct-nav__chev" aria-hidden="true"></span></button>';
+			if ( 'minimal' === $arrow_style ) {
+				$prev_inner = '<span class="dct-nav__minimal" aria-hidden="true">&#8249;</span>';
+				$next_inner = '<span class="dct-nav__minimal" aria-hidden="true">&#8250;</span>';
+			} elseif ( 'angle' === $arrow_style ) {
+				$prev_inner = '<span class="dct-nav__angle" aria-hidden="true"></span>';
+				$next_inner = '<span class="dct-nav__angle dct-nav__angle--next" aria-hidden="true"></span>';
+			} else {
+				$prev_inner = '<span class="dct-nav__chev" aria-hidden="true"></span>';
+				$next_inner = '<span class="dct-nav__chev" aria-hidden="true"></span>';
+			}
+
+			$prev_btn = sprintf(
+				'<button type="button" class="dct-nav dct-nav--prev dct-nav--style-%1$s" aria-label="%2$s">%3$s</button>',
+				esc_attr( $arrow_style ),
+				esc_attr__( 'Previous testimonial', 'divi-custom-testimonial' ),
+				$prev_inner // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static HTML spans.
+			);
+			$next_btn = sprintf(
+				'<button type="button" class="dct-nav dct-nav--next dct-nav--style-%1$s" aria-label="%2$s">%3$s</button>',
+				esc_attr( $arrow_style ),
+				esc_attr__( 'Next testimonial', 'divi-custom-testimonial' ),
+				$next_inner // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			);
 		}
 
 		$slide_count = count( $slides );

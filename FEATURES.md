@@ -38,10 +38,4 @@
 ## Plugin behavior
 
 - Registers with Divi on `et_builder_ready`; shows an **admin notice** if Divi Builder is not available
-- **Visual Builder** uses **partial** compatibility: the module preview is **server-rendered** (AJAX), like many PHP-only Divi modules. Full **React** (`vb_support = on`) would require a separate JavaScript bundle from Divi’s extension toolchain; without it, the VB can show confusing **minified React** output or blank UI. Partial mode avoids that.
-
-## Where to edit content
-
-- **Content → Testimonials**: each row has **Testimonial Text**, **Author Name**, **Image** (left column when “Image Left” is set under Advanced → Layout), **Read More — Button Text**, **Read More — Link**, and link target.
-- **General → Arrows (Prev / Next)** (or **Navigation**): show/hide arrows, **Arrow Color**, **Arrow Icon Size**, **Arrow Touch Area** (and Custom CSS for arrow selectors if needed).
-- **Advanced → Layout & Spacing → Image Position**: default **Left** keeps the image on the left on desktop.
+- **Visual Builder** uses **`partial`** compatibility (PHP/AJAX preview), not full React `on` mode — see `VISUAL-BUILDER.md` if you ever saw minified JS in the builder
