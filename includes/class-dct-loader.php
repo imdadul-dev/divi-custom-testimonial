@@ -1,6 +1,6 @@
 <?php
 /**
- * Bootstrap: load module once Divi Builder is available; works across Divi 4 / 5 / Builder plugin.
+ * Loads the Divi module when the builder is available.
  *
  * @package DiviCustomTestimonial
  */
@@ -10,93 +10,77 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Whether Divi Builder core is loaded.
- *
- * @return bool
+ * Plugin bootstrap.
  */
-function dct_is_divi_builder_available() {
-	return class_exists( 'ET_Builder_Module' ) && class_exists( 'ET_Builder_Element' );
-}
+final class DCT_Loader {
 
-/**
- * Register plugin CSS/JS (called once).
- *
- * @return void
- */
-function dct_register_assets() {
-	if ( wp_style_is( 'dct-custom-testimonial', 'registered' ) ) {
-		return;
+	/**
+	 * Singleton instance.
+	 *
+	 * @var DCT_Loader|null
+	 */
+	private static $instance = null;
+
+	/**
+	 * Get instance.
+	 *
+	 * @return DCT_Loader
+	 */
+	public static function instance() {
+		if ( null === self::$instance ) {
+			self::$instance = new self();
+		}
+		return self::$instance;
 	}
 
-	wp_register_style(
-		'dct-custom-testimonial',
-		DCT_PLUGIN_URL . 'assets/css/frontend.css',
-		array(),
-		DCT_VERSION
-	);
-
-	wp_register_script(
-		'dct-custom-testimonial',
-		DCT_PLUGIN_URL . 'assets/js/frontend.js',
-		array(),
-		DCT_VERSION,
-		true
-	);
-}
-
-/**
- * Load the Divi module class and register assets.
- *
- * @return void
- */
-function dct_load_module() {
-	if ( ! dct_is_divi_builder_available() ) {
-		return;
+	/**
+	 * Constructor.
+	 */
+	private function __construct() {
+		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
+		add_action( 'et_builder_ready', array( $this, 'load_divi_module' ), 11 );
+		add_action( 'admin_notices', array( $this, 'maybe_admin_notice_divi_missing' ) );
 	}
 
-	if ( class_exists( 'DCT_Custom_Testimonial_Module', false ) ) {
-		return;
+	/**
+	 * Load translations.
+	 */
+	public function load_textdomain() {
+		load_plugin_textdomain( 'divi-custom-testimonial', false, dirname( DCT_PLUGIN_BASENAME ) . '/languages' );
 	}
 
-	require_once DCT_PLUGIN_DIR . 'includes/modules/DCT_Custom_Testimonial_Module.php';
-}
+	/**
+	 * Register module with Divi Builder.
+	 */
+	public function load_divi_module() {
+		if ( ! class_exists( 'ET_Builder_Module' ) ) {
+			return;
+		}
 
-/**
- * Fallback if `et_builder_ready` never fired (unusual load order / edge cases).
- *
- * @return void
- */
-function dct_maybe_load_module_fallback() {
-	if ( class_exists( 'DCT_Custom_Testimonial_Module', false ) ) {
-		return;
-	}
-	if ( ! dct_is_divi_builder_available() ) {
-		return;
-	}
-	// Primary path: et_builder_ready should have run; this only runs if it did not.
-	if ( did_action( 'et_builder_ready' ) ) {
-		return;
-	}
-	dct_load_module();
-}
+		require_once DCT_PLUGIN_DIR . 'includes/modules/class-dct-media-testimonial-slider-module.php';
 
-/**
- * Enqueue assets in the Visual Builder / FB iframe when Divi loads scripts there.
- *
- * @return void
- */
-function dct_enqueue_visual_builder_assets() {
-	if ( ! class_exists( 'DCT_Custom_Testimonial_Module', false ) ) {
-		return;
+		new DCT_Media_Testimonial_Slider_Module();
 	}
 
-	static $done = false;
-	if ( $done ) {
-		return;
-	}
-	$done = true;
+	/**
+	 * Show notice when Divi Builder is not available.
+	 */
+	public function maybe_admin_notice_divi_missing() {
+		if ( ! current_user_can( 'activate_plugins' ) ) {
+			return;
+		}
 
-	dct_register_assets();
-	wp_enqueue_style( 'dct-custom-testimonial' );
-	wp_enqueue_script( 'dct-custom-testimonial' );
+		if ( class_exists( 'ET_Builder_Module' ) ) {
+			return;
+		}
+
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		if ( $screen && 'plugins' !== $screen->id ) {
+			return;
+		}
+
+		echo '<div class="notice notice-warning"><p>';
+		esc_html_e( 'Divi Media Testimonial Slider requires the Divi theme or Divi Builder plugin to be active.', 'divi-custom-testimonial' );
+		echo '</p></div>';
+	}
 }

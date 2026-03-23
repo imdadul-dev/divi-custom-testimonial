@@ -1,127 +1,221 @@
 /**
- * Slider: sync slide widths to viewport and handle prev/next.
+ * Media Testimonial Slider — Swiper init, lightbox, accessibility helpers.
+ *
+ * @package DiviCustomTestimonial
  */
 (function () {
 	'use strict';
 
-	function initSlider(root) {
-		var viewport = root.querySelector('.dct-viewport');
-		var track = root.querySelector('.dct-track');
-		var slides = root.querySelectorAll('.dct-slide');
-		var prev = root.querySelector('.dct-nav--prev');
-		var next = root.querySelector('.dct-nav--next');
-		var total = slides.length;
-
-		if (!viewport || !track || total === 0) {
-			return;
+	/**
+	 * Parse JSON from data attribute safely.
+	 *
+	 * @param {string} raw Raw JSON string.
+	 * @return {Object|null}
+	 */
+	function parseConfig(raw) {
+		if (!raw) {
+			return null;
 		}
-
-		var idx = 0;
-
-		function slideWidth() {
-			return viewport.getBoundingClientRect().width;
+		try {
+			return JSON.parse(raw);
+		} catch (e) {
+			return null;
 		}
-
-		function applyLayout() {
-			var w = slideWidth();
-			if (w <= 0) {
-				return;
-			}
-			for (var i = 0; i < slides.length; i++) {
-				slides[i].style.flexBasis = w + 'px';
-				slides[i].style.minWidth = w + 'px';
-				slides[i].style.maxWidth = w + 'px';
-			}
-			go(idx, false);
-		}
-
-		function getTransitionMs() {
-			var ms = 450;
-			try {
-				var raw = window
-					.getComputedStyle(root)
-					.getPropertyValue('--dct-slide-ms')
-					.trim();
-				var n = parseFloat(raw);
-				if (!isNaN(n)) {
-					ms = n;
-				}
-			} catch (e) {
-				ms = 450;
-			}
-			var reduce =
-				window.matchMedia &&
-				window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-			return reduce ? 0 : ms;
-		}
-
-		function go(nextIndex, animate) {
-			var w = slideWidth();
-			if (w <= 0) {
-				return;
-			}
-			if (total > 1) {
-				idx = (nextIndex % total + total) % total;
-			} else {
-				idx = 0;
-			}
-			var offset = -(idx * w);
-			var dur = getTransitionMs();
-			if (animate === false) {
-				track.style.transition = 'none';
-			} else if (dur <= 0) {
-				track.style.transition = 'none';
-			} else {
-				track.style.transition = 'transform ' + dur + 'ms ease';
-			}
-			track.style.transform = 'translate3d(' + offset + 'px, 0, 0)';
-		}
-
-		if (total < 2) {
-			track.style.transform = 'translate3d(0, 0, 0)';
-			return;
-		}
-
-		if (prev) {
-			prev.addEventListener('click', function () {
-				go(idx - 1, true);
-			});
-		}
-		if (next) {
-			next.addEventListener('click', function () {
-				go(idx + 1, true);
-			});
-		}
-
-		var resizeTimer;
-		window.addEventListener(
-			'resize',
-			function () {
-				clearTimeout(resizeTimer);
-				resizeTimer = setTimeout(function () {
-					applyLayout();
-				}, 100);
-			},
-			{ passive: true }
-		);
-
-		if (window.ResizeObserver) {
-			var ro = new ResizeObserver(function () {
-				applyLayout();
-			});
-			ro.observe(viewport);
-		}
-
-		applyLayout();
 	}
 
+	/**
+	 * Ensure a single lightbox exists in the document.
+	 *
+	 * @return {HTMLElement}
+	 */
+	function getStrings() {
+		return window.dctMtsL10n || {};
+	}
+
+	function getOrCreateLightbox() {
+		var existing = document.getElementById('dct-mts-lightbox-root');
+		if (existing) {
+			return existing;
+		}
+
+		var l10n = getStrings();
+		var videoLabel = l10n.videoLabel || 'Video';
+		var closeLabel = l10n.closeLabel || 'Close';
+
+		var wrap = document.createElement('div');
+		wrap.id = 'dct-mts-lightbox-root';
+		wrap.className = 'dct-mts-lightbox';
+		wrap.setAttribute('hidden', 'hidden');
+		wrap.innerHTML =
+			'<div class="dct-mts-lightbox__backdrop" data-dct-lightbox-close tabindex="-1"></div>' +
+			'<div class="dct-mts-lightbox__dialog" role="dialog" aria-modal="true" aria-label="' +
+			String(videoLabel).replace(/"/g, '&quot;') +
+			'">' +
+			'<button type="button" class="dct-mts-lightbox__close" data-dct-lightbox-close aria-label="' +
+			String(closeLabel).replace(/"/g, '&quot;') +
+			'">&times;</button>' +
+			'<div class="dct-mts-lightbox__inner"></div>' +
+			'</div>';
+
+		document.body.appendChild(wrap);
+		return wrap;
+	}
+
+	/**
+	 * Open lightbox with embed HTML.
+	 *
+	 * @param {string} html HTML from oEmbed / video tag.
+	 */
+	function openLightbox(html) {
+		var box = getOrCreateLightbox();
+		var inner = box.querySelector('.dct-mts-lightbox__inner');
+		if (!inner) {
+			return;
+		}
+
+		inner.innerHTML = html;
+		box.removeAttribute('hidden');
+
+		var closeBtn = box.querySelector('.dct-mts-lightbox__close');
+		if (closeBtn) {
+			closeBtn.focus();
+		}
+
+		document.body.style.overflow = 'hidden';
+	}
+
+	/**
+	 * Close lightbox and clear iframe sources.
+	 */
+	function closeLightbox() {
+		var box = document.getElementById('dct-mts-lightbox-root');
+		if (!box || box.hasAttribute('hidden')) {
+			return;
+		}
+
+		var inner = box.querySelector('.dct-mts-lightbox__inner');
+		if (inner) {
+			inner.querySelectorAll('iframe').forEach(function (frame) {
+				frame.setAttribute('src', '');
+			});
+			inner.innerHTML = '';
+		}
+
+		box.setAttribute('hidden', 'hidden');
+		document.body.style.overflow = '';
+	}
+
+	var lightboxDocBound = false;
+
+	/**
+	 * Bind document-level lightbox close once.
+	 */
+	function bindLightboxDocumentOnce() {
+		if (lightboxDocBound) {
+			return;
+		}
+		lightboxDocBound = true;
+
+		document.addEventListener('click', function (e) {
+			if (e.target.matches('[data-dct-lightbox-close]')) {
+				closeLightbox();
+			}
+		});
+
+		document.addEventListener('keydown', function (e) {
+			if (e.key === 'Escape') {
+				closeLightbox();
+			}
+		});
+	}
+
+	/**
+	 * Bind lightbox triggers inside a module root.
+	 *
+	 * @param {HTMLElement} root Module element.
+	 */
+	function bindLightbox(root) {
+		var lightboxEnabled = root.getAttribute('data-dct-video-lightbox') === '1';
+
+		bindLightboxDocumentOnce();
+
+		root.addEventListener('click', function (e) {
+			var btn = e.target.closest('.dct-mts__play');
+			if (!btn || !root.contains(btn)) {
+				return;
+			}
+
+			if (!lightboxEnabled) {
+				return;
+			}
+
+			var media = btn.closest('.dct-mts__media-inner--video');
+			if (!media) {
+				return;
+			}
+
+			var store = media.querySelector('.dct-mts__embed-store');
+			if (!store) {
+				return;
+			}
+
+			var html = store.innerHTML.trim();
+			if (!html) {
+				return;
+			}
+
+			e.preventDefault();
+			openLightbox(html);
+		});
+	}
+
+	/**
+	 * Initialize Swiper instances.
+	 */
+	function initSwipers() {
+		if (typeof Swiper === 'undefined') {
+			return;
+		}
+
+		var nodes = document.querySelectorAll('.dct-mts__swiper[data-swiper-config]');
+
+		nodes.forEach(function (el) {
+			if (el.getAttribute('data-dct-swiper-ready')) {
+				return;
+			}
+
+			var cfg = parseConfig(el.getAttribute('data-swiper-config'));
+			if (!cfg) {
+				return;
+			}
+
+			// eslint-disable-next-line no-new
+			new Swiper(el, cfg);
+			el.setAttribute('data-dct-swiper-ready', '1');
+		});
+	}
+
+	/**
+	 * Boot.
+	 */
 	function boot() {
-		document.querySelectorAll('[data-dct-slider]').forEach(initSlider);
+		initSwipers();
+
+		document.querySelectorAll('.dct-mts').forEach(function (root) {
+			bindLightbox(root);
+		});
 	}
 
 	if (document.readyState === 'loading') {
 		document.addEventListener('DOMContentLoaded', boot);
 	} else {
 		boot();
+	}
+
+	// Divi VB / dynamic load.
+	if (window.jQuery && window.jQuery(document).on) {
+		window.jQuery(window).on('load', function () {
+			initSwipers();
+		});
 	}
 })();

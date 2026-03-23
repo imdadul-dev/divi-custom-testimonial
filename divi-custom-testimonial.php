@@ -1,61 +1,30 @@
 <?php
 /**
- * Plugin Name: Divi Custom Testimonial
- * Description: A testimonial slider module for Divi with image, quote, author, and call-to-action—matching a clean split layout with navigation arrows.
- * Version: 1.4.3
- * Author: Custom
- * Text Domain: divi-custom-testimonial
+ * Plugin Name:       Divi Media Testimonial Slider
+ * Plugin URI:        https://github.com/yourusername/divi-custom-testimonial
+ * Description:       Custom Divi Builder module: media (image/video) with testimonial content and Swiper-based slider.
+ * Version:           1.0.0
  * Requires at least: 5.8
- * Requires PHP: 7.4
+ * Requires PHP:      7.4
+ * Author:            Your Name
+ * Author URI:        https://example.com
+ * License:           GPL-2.0-or-later
+ * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
+ * Text Domain:       divi-custom-testimonial
  *
- * Compatible with Divi theme, Divi Builder plugin, Divi 4.x / 5.x (backward compatibility layer).
+ * @package DiviCustomTestimonial
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'DCT_VERSION', '1.4.3' );
+define( 'DCT_VERSION', '1.0.0' );
 define( 'DCT_PLUGIN_FILE', __FILE__ );
 define( 'DCT_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'DCT_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
+define( 'DCT_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 
 require_once DCT_PLUGIN_DIR . 'includes/class-dct-loader.php';
 
-/**
- * Register assets early so Divi lazy-loading / VB iframe can enqueue them reliably.
- */
-add_action( 'plugins_loaded', 'dct_register_assets', 5 );
-
-/**
- * Primary: after Divi registers builder classes.
- */
-add_action( 'et_builder_ready', 'dct_load_module', 11 );
-
-/**
- * Fallback: unusual load order (caching, child themes, Builder plugin timing).
- */
-add_action( 'wp_loaded', 'dct_maybe_load_module_fallback', 99 );
-
-/**
- * Visual Builder (iframe) — hook exists in Divi 4+ FB.
- */
-add_action( 'et_fb_enqueue_assets', 'dct_enqueue_visual_builder_assets' );
-
-/**
- * Admin notice when Divi Builder is not available.
- */
-function dct_admin_notice_missing_divi() {
-	if ( ! current_user_can( 'activate_plugins' ) ) {
-		return;
-	}
-
-	if ( dct_is_divi_builder_available() ) {
-		return;
-	}
-
-	echo '<div class="notice notice-warning is-dismissible"><p>';
-	echo esc_html__( 'Divi Custom Testimonial requires the Divi theme or Divi Builder plugin to be active. The module will load automatically when Divi Builder is available.', 'divi-custom-testimonial' );
-	echo '</p></div>';
-}
-add_action( 'admin_notices', 'dct_admin_notice_missing_divi' );
+DCT_Loader::instance();
