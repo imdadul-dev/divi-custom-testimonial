@@ -15,6 +15,11 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 	 * Module init.
 	 */
 	public function init() {
+		$parent = get_parent_class( $this );
+		if ( $parent && method_exists( $parent, 'init' ) ) {
+			parent::init();
+		}
+
 		$this->name      = esc_html__( 'Custom Testimonial', 'divi-custom-testimonial' );
 		$this->plural    = esc_html__( 'Custom Testimonials', 'divi-custom-testimonial' );
 		$this->slug       = 'dct_custom_testimonial';
@@ -198,76 +203,116 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 	}
 
 	/**
+	 * Plain Content fields (up to 5 testimonials). sortable_list is unreliable in the Visual Builder
+	 * for PHP-only modules, so we use standard field types Divi always renders.
+	 *
+	 * @return array<string, array<string, mixed>>
+	 */
+	protected function dct_get_plain_testimonial_fields() {
+		$common = array(
+			'option_category' => 'basic_option',
+			'tab_slug'        => 'general',
+			'toggle_slug'     => 'main_content',
+		);
+
+		$fields = array();
+
+		for ( $i = 1; $i <= 5; $i++ ) {
+			/* translators: %d: testimonial index 1–5 */
+			$prefix = sprintf( esc_html__( 'Testimonial %d', 'divi-custom-testimonial' ), $i );
+
+			$fields[ 'dct_t' . $i . '_image' ] = array_merge(
+				$common,
+				array(
+					'label' => sprintf(
+						/* translators: 1: block label, 2: field name */
+						esc_html__( '%1$s — %2$s', 'divi-custom-testimonial' ),
+						$prefix,
+						esc_html__( 'Image', 'divi-custom-testimonial' )
+					),
+					'type' => 'upload',
+				)
+			);
+
+			$fields[ 'dct_t' . $i . '_quote' ] = array_merge(
+				$common,
+				array(
+					'label' => sprintf(
+						esc_html__( '%1$s — %2$s', 'divi-custom-testimonial' ),
+						$prefix,
+						esc_html__( 'Testimonial text', 'divi-custom-testimonial' )
+					),
+					'type' => 'textarea',
+				)
+			);
+
+			$fields[ 'dct_t' . $i . '_author' ] = array_merge(
+				$common,
+				array(
+					'label' => sprintf(
+						esc_html__( '%1$s — %2$s', 'divi-custom-testimonial' ),
+						$prefix,
+						esc_html__( 'Author name', 'divi-custom-testimonial' )
+					),
+					'type' => 'text',
+				)
+			);
+
+			$fields[ 'dct_t' . $i . '_readmore_text' ] = array_merge(
+				$common,
+				array(
+					'label'   => sprintf(
+						esc_html__( '%1$s — %2$s', 'divi-custom-testimonial' ),
+						$prefix,
+						esc_html__( 'Read more button text', 'divi-custom-testimonial' )
+					),
+					'type'    => 'text',
+					'default' => 'Read More',
+				)
+			);
+
+			$fields[ 'dct_t' . $i . '_readmore_url' ] = array_merge(
+				$common,
+				array(
+					'label' => sprintf(
+						esc_html__( '%1$s — %2$s', 'divi-custom-testimonial' ),
+						$prefix,
+						esc_html__( 'Read more button link', 'divi-custom-testimonial' )
+					),
+					'type' => 'text',
+				)
+			);
+
+			$fields[ 'dct_t' . $i . '_readmore_new_tab' ] = array_merge(
+				$common,
+				array(
+					'label'   => sprintf(
+						esc_html__( '%1$s — %2$s', 'divi-custom-testimonial' ),
+						$prefix,
+						esc_html__( 'Open button link in new tab', 'divi-custom-testimonial' )
+					),
+					'type'    => 'yes_no_button',
+					'options' => array(
+						'on'  => esc_html__( 'Yes', 'divi-custom-testimonial' ),
+						'off' => esc_html__( 'No', 'divi-custom-testimonial' ),
+					),
+					'default' => 'off',
+				)
+			);
+		}
+
+		return $fields;
+	}
+
+	/**
 	 * Module field definitions.
 	 *
 	 * @return array
 	 */
 	public function get_fields() {
-		return array(
-			'slides'              => array(
-				'label'             => esc_html__( 'Testimonials', 'divi-custom-testimonial' ),
-				'description'       => esc_html__( 'Add slides with the green + button. Each slide: image, testimonial text, author, and Read More button.', 'divi-custom-testimonial' ),
-				'type'              => 'sortable_list',
-				'option_category'   => 'basic_option',
-				'tab_slug'          => 'general',
-				'toggle_slug'       => 'main_content',
-				'right_actions'     => 'copy|delete|move',
-				/*
-				 * Inner keys MUST NOT use names like "image", "author", or "quote" — they clash with
-				 * Divi's own module attributes and the Content fields fail to render (see ET_Builder_Element).
-				 */
-				'default'           => wp_json_encode(
-					array(
-						array(
-							'tst_image'          => '',
-							'tst_quote'          => '',
-							'tst_author'         => '',
-							'tst_button_text'    => 'Read More',
-							'tst_button_url'     => '',
-							'tst_url_new_window' => 'off',
-						),
-					)
-				),
-				'fields'            => array(
-					'tst_image'          => array(
-						'label'           => esc_html__( 'Image', 'divi-custom-testimonial' ),
-						'type'            => 'upload',
-						'option_category' => 'basic_option',
-					),
-					'tst_quote'          => array(
-						'label'           => esc_html__( 'Testimonial Text', 'divi-custom-testimonial' ),
-						'type'            => 'textarea',
-						'option_category' => 'basic_option',
-					),
-					'tst_author'         => array(
-						'label'           => esc_html__( 'Author Name', 'divi-custom-testimonial' ),
-						'type'            => 'text',
-						'option_category' => 'basic_option',
-					),
-					'tst_button_text'    => array(
-						'label'           => esc_html__( 'Read More Button Text', 'divi-custom-testimonial' ),
-						'type'            => 'text',
-						'option_category' => 'basic_option',
-						'default'         => 'Read More',
-					),
-					'tst_button_url'     => array(
-						'label'           => esc_html__( 'Read More Button Link', 'divi-custom-testimonial' ),
-						'type'            => 'text',
-						'option_category' => 'basic_option',
-					),
-					'tst_url_new_window' => array(
-						'label'            => esc_html__( 'Button Link Target', 'divi-custom-testimonial' ),
-						'type'             => 'select',
-						'option_category'  => 'basic_option',
-						'options'          => array(
-							'off' => esc_html__( 'In The Same Window', 'divi-custom-testimonial' ),
-							'on'  => esc_html__( 'In The New Tab', 'divi-custom-testimonial' ),
-						),
-						'default'          => 'off',
-						'default_on_front' => 'off',
-					),
-				),
-			),
+		return array_merge(
+			$this->dct_get_plain_testimonial_fields(),
+			array(
 			'accent_color'        => array(
 				'label'           => esc_html__( 'Accent Color', 'divi-custom-testimonial' ),
 				'description'     => esc_html__( 'Fallback accent when icon or button colors are left empty.', 'divi-custom-testimonial' ),
@@ -699,6 +744,7 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 				'default_unit'    => 'px',
 				'mobile_options'  => true,
 			),
+			)
 		);
 	}
 
@@ -1074,11 +1120,55 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 	}
 
 	/**
-	 * Get slides from props.
+	 * Build slide rows from plain Content fields (dct_t1_* … dct_t5_*).
+	 *
+	 * @return array<int, array<string, string>>
+	 */
+	protected function dct_slides_from_plain_fields() {
+		$slides = array();
+
+		for ( $i = 1; $i <= 5; $i++ ) {
+			$img    = isset( $this->props[ 'dct_t' . $i . '_image' ] ) ? trim( (string) $this->props[ 'dct_t' . $i . '_image' ] ) : '';
+			$quote  = isset( $this->props[ 'dct_t' . $i . '_quote' ] ) ? trim( (string) $this->props[ 'dct_t' . $i . '_quote' ] ) : '';
+			$author = isset( $this->props[ 'dct_t' . $i . '_author' ] ) ? trim( (string) $this->props[ 'dct_t' . $i . '_author' ] ) : '';
+
+			if ( '' === $img && '' === $quote && '' === $author ) {
+				continue;
+			}
+
+			$btn = isset( $this->props[ 'dct_t' . $i . '_readmore_text' ] ) ? trim( (string) $this->props[ 'dct_t' . $i . '_readmore_text' ] ) : '';
+			if ( '' === $btn ) {
+				$btn = 'Read More';
+			}
+
+			$url = isset( $this->props[ 'dct_t' . $i . '_readmore_url' ] ) ? trim( (string) $this->props[ 'dct_t' . $i . '_readmore_url' ] ) : '';
+
+			$new_tab = isset( $this->props[ 'dct_t' . $i . '_readmore_new_tab' ] ) && 'on' === $this->props[ 'dct_t' . $i . '_readmore_new_tab' ];
+
+			$slides[] = array(
+				'tst_image'          => $img,
+				'tst_quote'          => $quote,
+				'tst_author'         => $author,
+				'tst_button_text'    => $btn,
+				'tst_button_url'     => $url,
+				'tst_url_new_window' => $new_tab ? 'on' : 'off',
+			);
+		}
+
+		return $slides;
+	}
+
+	/**
+	 * Get slides from props (plain fields first, then legacy sortable JSON).
 	 *
 	 * @return array<int, array<string, string>>
 	 */
 	protected function dct_get_slides() {
+		$from_plain = $this->dct_slides_from_plain_fields();
+		if ( ! empty( $from_plain ) ) {
+			return $from_plain;
+		}
+
 		$slides = isset( $this->props['slides'] ) ? $this->props['slides'] : '';
 
 		if ( is_string( $slides ) && $slides !== '' ) {

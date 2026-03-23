@@ -3,8 +3,7 @@
 ## Core
 
 - Divi Builder module: **Custom Testimonial**
-- **Multiple testimonials** via sortable list (add/reorder slides)
-- Per slide: **image**, **quote**, **author/organization**, **button text**, **button URL**, **open in new tab**
+- **Up to five testimonials** on the Content tab using standard fields (not a sortable list, for Visual Builder reliability): per block — **image**, **testimonial text**, **author name**, **read more text**, **read more link**, **open in new tab**
 
 ## Layout & design
 
@@ -37,5 +36,6 @@
 
 ## Plugin behavior
 
-- Registers with Divi on `et_builder_ready`; shows an **admin notice** if Divi Builder is not available
-- **Visual Builder** uses **`partial`** compatibility (PHP/AJAX preview), not full React `on` mode — see `VISUAL-BUILDER.md` if you ever saw minified JS in the builder
+- Loads when Divi is ready (`et_builder_ready`, with `wp_loaded` fallback); registers assets early (`plugins_loaded`) for Divi 4/5 and lazy shortcodes
+- Shows an **admin notice** if Divi Builder is not active
+- **Visual Builder** uses **`partial`** compatibility (PHP/AJAX preview) — see `VISUAL-BUILDER.md`

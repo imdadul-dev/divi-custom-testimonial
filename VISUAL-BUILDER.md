@@ -1,5 +1,17 @@
 # Visual Builder notes
 
+## Version compatibility (Divi 4 / 5 / Builder plugin)
+
+The plugin:
+
+- Loads on `et_builder_ready` and falls back to `wp_loaded` if the builder fired in an unusual order.
+- Registers CSS/JS on `plugins_loaded` so assets exist before Divi lazy-loads shortcodes or the Visual Builder iframe.
+- Enqueues assets for the FB iframe via `et_fb_enqueue_assets` and a `wp_enqueue_scripts` check for common FB helpers / `et_fb` query flag.
+- Uses `vb_support = partial` (PHP/AJAX preview) so a separate React bundle is not required across Divi versions.
+- Calls `parent::init()` when the parent `ET_Builder_Module` defines `init`, matching Divi’s lifecycle in different releases.
+
+Use the **Divi theme** or **Divi Builder** plugin from Elegant Themes; third-party “Divi” forks are not supported.
+
 ## Why you might see minified JavaScript (`createElement`, `rawContentProcessor`, etc.)
 
 Divi’s Visual Builder has three compatibility levels: **off**, **partial**, and **on** (see [Compatibility levels](https://www.elegantthemes.com/documentation/developers/divi-module/compatibility-levels/)).
@@ -15,11 +27,9 @@ That was usually the same **VB + `on` mismatch**: the settings UI did not behave
 
 ### Content tab still empty or sortable rows have no sub-fields
 
-Divi reserves many **top-level attribute names** (for example `image`, `quote`, `author`, `background_color`). Using those names as **keys inside** a `sortable_list` can break the settings panel so labels and inputs never appear.
+**Current plugin (1.3+):** testimonials are **not** a `sortable_list` anymore. The Content tab uses **normal Divi fields** (upload, textarea, text, yes/no) for up to **five** testimonials (`Testimonial 1 — Image`, `Testimonial 1 — Testimonial text`, …). That avoids Visual Builder bugs with `sortable_list` on PHP-only modules.
 
-This module uses prefixed keys (`tst_image`, `tst_quote`, `tst_author`, …) so they do not collide with Divi’s internals. Older saved modules that used the old keys are still read on the front end via fallbacks.
-
-Also ensure each field that belongs on the **Content** tab includes **`tab_slug` => `'general'`** together with **`toggle_slug`**.
+**Legacy:** if your page still has a `slides="[...]"` attribute from an older version and you have **not** filled any of the new plain fields, the front end still uses that JSON. As soon as you fill the new fields and save, the module uses those instead (re-enter any extra slides in testimonial 2–5 if needed).
 
 ## Backend builder
 
