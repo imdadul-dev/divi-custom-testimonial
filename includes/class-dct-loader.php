@@ -89,6 +89,13 @@ function dct_enqueue_visual_builder_assets() {
 	if ( ! class_exists( 'DCT_Custom_Testimonial_Module', false ) ) {
 		return;
 	}
+
+	static $done = false;
+	if ( $done ) {
+		return;
+	}
+	$done = true;
+
 	dct_register_assets();
 	wp_enqueue_style( 'dct-custom-testimonial' );
 	wp_enqueue_script( 'dct-custom-testimonial' );

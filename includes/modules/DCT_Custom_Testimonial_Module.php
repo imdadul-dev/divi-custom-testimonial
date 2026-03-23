@@ -103,12 +103,7 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 	 * @return array
 	 */
 	public function get_advanced_fields_config() {
-		static $config = null;
-		if ( null !== $config ) {
-			return $config;
-		}
-
-		$config = array(
+		return array(
 			'fonts'          => array(
 				'quote'  => array(
 					'label'          => esc_html__( 'Quote', 'divi-custom-testimonial' ),
@@ -204,8 +199,6 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 				),
 			),
 		);
-
-		return $config;
 	}
 
 	/**
@@ -316,12 +309,7 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 	 * @return array
 	 */
 	public function get_fields() {
-		static $fields = null;
-		if ( null !== $fields ) {
-			return $fields;
-		}
-
-		$fields = array_merge(
+		return array_merge(
 			$this->dct_get_plain_testimonial_fields(),
 			array(
 			'accent_color'        => array(
@@ -332,8 +320,7 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 				'toggle_slug'     => 'colors',
 				'tab_slug'        => 'advanced',
 				'default'         => '#8dc65f',
-				'mobile_options'  => true,
-				'hover'           => 'tabs',
+				'mobile_options'  => false,
 			),
 			'quote_icon_color'    => array(
 				'label'           => esc_html__( 'Quote Icon Color', 'divi-custom-testimonial' ),
@@ -343,8 +330,7 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 				'toggle_slug'     => 'colors',
 				'tab_slug'        => 'advanced',
 				'default'         => '',
-				'mobile_options'  => true,
-				'hover'           => 'tabs',
+				'mobile_options'  => false,
 			),
 			'quote_text_color'    => array(
 				'label'           => esc_html__( 'Quote Text Color', 'divi-custom-testimonial' ),
@@ -353,8 +339,7 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 				'toggle_slug'     => 'colors',
 				'tab_slug'        => 'advanced',
 				'default'         => '#333333',
-				'mobile_options'  => true,
-				'hover'           => 'tabs',
+				'mobile_options'  => false,
 			),
 			'author_text_color'   => array(
 				'label'           => esc_html__( 'Author Text Color', 'divi-custom-testimonial' ),
@@ -363,8 +348,7 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 				'toggle_slug'     => 'colors',
 				'tab_slug'        => 'advanced',
 				'default'         => '#a8a8a8',
-				'mobile_options'  => true,
-				'hover'           => 'tabs',
+				'mobile_options'  => false,
 			),
 			'button_bg_color'     => array(
 				'label'           => esc_html__( 'Button Background', 'divi-custom-testimonial' ),
@@ -374,8 +358,7 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 				'toggle_slug'     => 'colors',
 				'tab_slug'        => 'advanced',
 				'default'         => '',
-				'mobile_options'  => true,
-				'hover'           => 'tabs',
+				'mobile_options'  => false,
 			),
 			'inner_bg_color'      => array(
 				'label'           => esc_html__( 'Inner Card Background', 'divi-custom-testimonial' ),
@@ -384,8 +367,7 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 				'toggle_slug'     => 'colors',
 				'tab_slug'        => 'advanced',
 				'default'         => '#eeeeee',
-				'mobile_options'  => true,
-				'hover'           => 'tabs',
+				'mobile_options'  => false,
 			),
 			'outer_bg_color'      => array(
 				'label'           => esc_html__( 'Module Background', 'divi-custom-testimonial' ),
@@ -395,8 +377,7 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 				'toggle_slug'     => 'colors',
 				'tab_slug'        => 'advanced',
 				'default'         => '',
-				'mobile_options'  => true,
-				'hover'           => 'tabs',
+				'mobile_options'  => false,
 			),
 			'image_position'      => array(
 				'label'           => esc_html__( 'Image Position', 'divi-custom-testimonial' ),
@@ -438,7 +419,7 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 				),
 				'default'         => '48px',
 				'default_unit'    => 'px',
-				'mobile_options'  => true,
+				'mobile_options'  => false,
 			),
 			'content_gap'         => array(
 				'label'           => esc_html__( 'Gap Between Content Elements', 'divi-custom-testimonial' ),
@@ -454,7 +435,7 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 				),
 				'default'         => '16px',
 				'default_unit'    => 'px',
-				'mobile_options'  => true,
+				'mobile_options'  => false,
 			),
 			'inner_min_height'    => array(
 				'label'           => esc_html__( 'Inner Card Min Height', 'divi-custom-testimonial' ),
@@ -485,7 +466,7 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 				),
 				'default'         => '16px',
 				'default_unit'    => 'px',
-				'mobile_options'  => true,
+				'mobile_options'  => false,
 			),
 			'slider_transition_ms' => array(
 				'label'           => esc_html__( 'Slide Transition (ms)', 'divi-custom-testimonial' ),
@@ -515,7 +496,7 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 				),
 				'default'         => '24px',
 				'default_unit'    => 'px',
-				'mobile_options'  => true,
+				'mobile_options'  => false,
 			),
 			'button_text_color'   => array(
 				'label'           => esc_html__( 'Button Text Color', 'divi-custom-testimonial' ),
@@ -524,8 +505,7 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 				'toggle_slug'     => 'button',
 				'tab_slug'        => 'advanced',
 				'default'         => '#ffffff',
-				'mobile_options'  => true,
-				'hover'           => 'tabs',
+				'mobile_options'  => false,
 			),
 			'button_radius'       => array(
 				'label'           => esc_html__( 'Button Corner Radius', 'divi-custom-testimonial' ),
@@ -540,7 +520,7 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 				),
 				'default'         => '4px',
 				'default_unit'    => 'px',
-				'mobile_options'  => true,
+				'mobile_options'  => false,
 			),
 			'show_arrows'         => array(
 				'label'           => esc_html__( 'Show Arrows', 'divi-custom-testimonial' ),
@@ -561,7 +541,7 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 				'tab_slug'        => 'general',
 				'toggle_slug'     => 'navigation',
 				'default'         => '#c8c8c8',
-				'mobile_options'  => true,
+				'mobile_options'  => false,
 			),
 			'arrow_style'         => array(
 				'label'           => esc_html__( 'Arrow Style', 'divi-custom-testimonial' ),
@@ -590,7 +570,7 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 				),
 				'default'         => '56px',
 				'default_unit'    => 'px',
-				'mobile_options'  => true,
+				'mobile_options'  => false,
 			),
 			'content_max_width'   => array(
 				'label'           => esc_html__( 'Content Column Max Width', 'divi-custom-testimonial' ),
@@ -667,7 +647,7 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 					'scale-down' => esc_html__( 'Scale Down', 'divi-custom-testimonial' ),
 				),
 				'default'         => 'cover',
-				'mobile_options'  => true,
+				'mobile_options'  => false,
 			),
 			'button_padding_vertical' => array(
 				'label'           => esc_html__( 'Button Padding Top & Bottom', 'divi-custom-testimonial' ),
@@ -682,7 +662,7 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 				),
 				'default'         => '10px',
 				'default_unit'    => 'px',
-				'mobile_options'  => true,
+				'mobile_options'  => false,
 			),
 			'button_padding_horizontal' => array(
 				'label'           => esc_html__( 'Button Padding Left & Right', 'divi-custom-testimonial' ),
@@ -697,7 +677,7 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 				),
 				'default'         => '28px',
 				'default_unit'    => 'px',
-				'mobile_options'  => true,
+				'mobile_options'  => false,
 			),
 			'button_border_width' => array(
 				'label'           => esc_html__( 'Button Border Width', 'divi-custom-testimonial' ),
@@ -712,7 +692,7 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 				),
 				'default'         => '0px',
 				'default_unit'    => 'px',
-				'mobile_options'  => true,
+				'mobile_options'  => false,
 			),
 			'button_border_color' => array(
 				'label'           => esc_html__( 'Button Border Color', 'divi-custom-testimonial' ),
@@ -721,8 +701,7 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 				'toggle_slug'     => 'button',
 				'tab_slug'        => 'advanced',
 				'default'         => '',
-				'mobile_options'  => true,
-				'hover'           => 'tabs',
+				'mobile_options'  => false,
 			),
 			'arrow_icon_size'     => array(
 				'label'           => esc_html__( 'Arrow Icon Size', 'divi-custom-testimonial' ),
@@ -737,7 +716,7 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 				),
 				'default'         => '12px',
 				'default_unit'    => 'px',
-				'mobile_options'  => true,
+				'mobile_options'  => false,
 			),
 			'nav_button_size'     => array(
 				'label'           => esc_html__( 'Arrow Touch Area', 'divi-custom-testimonial' ),
@@ -753,12 +732,10 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 				),
 				'default'         => '44px',
 				'default_unit'    => 'px',
-				'mobile_options'  => true,
+				'mobile_options'  => false,
 			),
 			)
 		);
-
-		return $fields;
 	}
 
 	/**
@@ -1199,14 +1176,18 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 	}
 
 	/**
-	 * Enqueue CSS/JS on real page loads. Skip during admin-ajax: Divi partial modules render
-	 * previews via AJAX often; wp_enqueue_* does not print there but still resolves the global
-	 * script queue and can add noticeable latency (timeouts on slow hosts).
+	 * Enqueue CSS/JS on real page loads only. Skip during admin-ajax and REST: Divi partial
+	 * modules and Divi 5+ previews hit those endpoints often; wp_enqueue_* does not print
+	 * there but still resolves the global script queue (major latency / gateway timeouts).
 	 *
 	 * @return void
 	 */
 	protected function dct_maybe_enqueue_frontend_assets() {
 		if ( wp_doing_ajax() ) {
+			return;
+		}
+
+		if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
 			return;
 		}
 
