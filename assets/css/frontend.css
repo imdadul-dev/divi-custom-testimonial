@@ -112,6 +112,27 @@
 	outline: none;
 }
 
+/* Visual Builder: placeholder instead of iframe (avoids Divi React parse issues). */
+.dct-mts__video-vb-placeholder {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	padding: 1.5rem;
+	background: rgba(0, 0, 0, 0.06);
+	border-radius: var(--dct-mts-radius);
+	font-size: 14px;
+	line-height: 1.4;
+}
+
+.dct-mts__video-vb-label {
+	font-weight: 600;
+}
+
+.dct-mts__video-vb-url {
+	word-break: break-all;
+	opacity: 0.85;
+}
+
 .dct-mts__play-icon {
 	width: 0;
 	height: 0;

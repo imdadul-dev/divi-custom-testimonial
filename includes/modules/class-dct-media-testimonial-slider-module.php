@@ -157,56 +157,60 @@ class DCT_Media_Testimonial_Slider_Module extends ET_Builder_Module {
 					)
 				),
 				'options'         => array(
+					// Template key must follow Divi's sortable_list pattern (see ET core modules).
 					'new_slide' => array(
 						'add_button_text' => esc_html__( 'Add Slide', 'divi-custom-testimonial' ),
 						'item_name'       => esc_html__( 'Slide', 'divi-custom-testimonial' ),
 						'item_settings'   => array(
 							'media_type'      => array(
-								'label'   => esc_html__( 'Media Type', 'divi-custom-testimonial' ),
-								'type'    => 'select',
-								'options' => array(
+								'label'             => esc_html__( 'Media Type', 'divi-custom-testimonial' ),
+								'type'              => 'select',
+								'option_category'   => 'basic_option',
+								'options'           => array(
 									'image' => esc_html__( 'Image', 'divi-custom-testimonial' ),
 									'video' => esc_html__( 'Video', 'divi-custom-testimonial' ),
 								),
-								'default' => 'image',
+								'default'           => 'image',
+								// Avoid show_if here: nested show_if breaks field rendering in some Divi versions.
 							),
 							'image'           => array(
 								'label'              => esc_html__( 'Image', 'divi-custom-testimonial' ),
 								'type'               => 'upload',
+								'option_category'    => 'basic_option',
 								'upload_button_text' => esc_html__( 'Upload', 'divi-custom-testimonial' ),
 								'choose_text'        => esc_html__( 'Choose Image', 'divi-custom-testimonial' ),
 								'update_text'        => esc_html__( 'Update Image', 'divi-custom-testimonial' ),
-								'show_if'            => array(
-									'media_type' => 'image',
-								),
 							),
 							'video_url'       => array(
-								'label'       => esc_html__( 'Video URL', 'divi-custom-testimonial' ),
-								'type'        => 'text',
-								'description' => esc_html__( 'YouTube, Vimeo, or direct file (mp4/webm).', 'divi-custom-testimonial' ),
-								'show_if'     => array(
-									'media_type' => 'video',
-								),
+								'label'             => esc_html__( 'Video URL', 'divi-custom-testimonial' ),
+								'type'              => 'text',
+								'option_category'   => 'basic_option',
+								'description'       => esc_html__( 'YouTube, Vimeo, or direct file (mp4/webm).', 'divi-custom-testimonial' ),
 							),
 							'quote_text'      => array(
-								'label' => esc_html__( 'Quote Text', 'divi-custom-testimonial' ),
-								'type'  => 'textarea',
+								'label'           => esc_html__( 'Quote Text', 'divi-custom-testimonial' ),
+								'type'            => 'textarea',
+								'option_category' => 'basic_option',
 							),
 							'author_name'     => array(
-								'label' => esc_html__( 'Author Name', 'divi-custom-testimonial' ),
-								'type'  => 'text',
+								'label'           => esc_html__( 'Author Name', 'divi-custom-testimonial' ),
+								'type'            => 'text',
+								'option_category' => 'basic_option',
 							),
 							'author_subtitle' => array(
-								'label' => esc_html__( 'Author Subtitle', 'divi-custom-testimonial' ),
-								'type'  => 'text',
+								'label'           => esc_html__( 'Author Subtitle', 'divi-custom-testimonial' ),
+								'type'            => 'text',
+								'option_category' => 'basic_option',
 							),
 							'button_text'     => array(
-								'label' => esc_html__( 'Button Text', 'divi-custom-testimonial' ),
-								'type'  => 'text',
+								'label'           => esc_html__( 'Button Text', 'divi-custom-testimonial' ),
+								'type'            => 'text',
+								'option_category' => 'basic_option',
 							),
 							'button_url'      => array(
-								'label' => esc_html__( 'Button URL', 'divi-custom-testimonial' ),
-								'type'  => 'text',
+								'label'           => esc_html__( 'Button URL', 'divi-custom-testimonial' ),
+								'type'            => 'text',
+								'option_category' => 'basic_option',
 							),
 						),
 					),
@@ -395,29 +399,128 @@ class DCT_Media_Testimonial_Slider_Module extends ET_Builder_Module {
 	}
 
 	/**
+	 * Convert snake_case key to camelCase (Divi VB often stores camelCase).
+	 *
+	 * @param string $key Field key.
+	 * @return string
+	 */
+	protected function dct_snake_to_camel( $key ) {
+		$parts = explode( '_', $key );
+		$head  = array_shift( $parts );
+		if ( empty( $parts ) ) {
+			return $head;
+		}
+		return $head . implode( '', array_map( 'ucfirst', $parts ) );
+	}
+
+	/**
+	 * Read slide property supporting snake_case and camelCase keys.
+	 *
+	 * @param array  $slide Slide row.
+	 * @param string $key   Snake_case key (e.g. author_name).
+	 * @return mixed
+	 */
+	protected function dct_slide_get( $slide, $key ) {
+		if ( ! is_array( $slide ) ) {
+			return '';
+		}
+		if ( array_key_exists( $key, $slide ) ) {
+			return $slide[ $key ];
+		}
+		$camel = $this->dct_snake_to_camel( $key );
+		if ( array_key_exists( $camel, $slide ) ) {
+			return $slide[ $camel ];
+		}
+		return '';
+	}
+
+	/**
+	 * Normalize upload field value (URL string, attachment ID, or array from builder).
+	 *
+	 * @param mixed $raw Raw image value.
+	 * @return string
+	 */
+	protected function dct_normalize_image_value( $raw ) {
+		if ( is_array( $raw ) ) {
+			if ( isset( $raw['url'] ) ) {
+				return (string) $raw['url'];
+			}
+			if ( isset( $raw['ID'] ) ) {
+				return (string) $raw['ID'];
+			}
+			if ( isset( $raw['id'] ) ) {
+				return (string) $raw['id'];
+			}
+		}
+		if ( is_scalar( $raw ) ) {
+			return (string) $raw;
+		}
+		return '';
+	}
+
+	/**
 	 * Parse sortable list / JSON slides into array.
 	 *
 	 * @param mixed $raw Raw attribute value.
-	 * @return array<int, array<string, string>>
+	 * @return array<int, array<string, mixed>>
 	 */
 	protected function parse_slides( $raw ) {
-		if ( empty( $raw ) ) {
+		if ( null === $raw || false === $raw || '' === $raw ) {
 			return array();
+		}
+
+		if ( is_string( $raw ) && function_exists( 'is_serialized' ) && is_serialized( $raw ) ) {
+			$raw = maybe_unserialize( $raw );
 		}
 
 		if ( is_string( $raw ) ) {
 			$decoded = json_decode( $raw, true );
 			if ( JSON_ERROR_NONE === json_last_error() && is_array( $decoded ) ) {
-				return $decoded;
+				return $this->dct_unwrap_slide_rows( $decoded );
 			}
 			return array();
 		}
 
 		if ( is_array( $raw ) ) {
-			return $raw;
+			return $this->dct_unwrap_slide_rows( $raw );
 		}
 
 		return array();
+	}
+
+	/**
+	 * Unwrap rows that store fields under `value` (some builder payloads).
+	 *
+	 * @param array $rows Raw rows.
+	 * @return array
+	 */
+	protected function dct_unwrap_slide_rows( $rows ) {
+		$out = array();
+		foreach ( $rows as $row ) {
+			if ( ! is_array( $row ) ) {
+				continue;
+			}
+			if ( isset( $row['value'] ) && is_array( $row['value'] ) ) {
+				$row = $row['value'];
+			}
+			$out[] = $row;
+		}
+		return $out;
+	}
+
+	/**
+	 * True when output is for Divi Visual Builder preview (not the live front end).
+	 * Raw oEmbed iframes here often break Divi's React layer (e.g. rawContentProcesser path).
+	 *
+	 * @return bool
+	 */
+	protected function dct_is_visual_builder_preview() {
+		if ( function_exists( 'et_core_is_fb_enabled' ) && et_core_is_fb_enabled() ) {
+			return true;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only builder bootstrap flag.
+		return isset( $_GET['et_fb'] ) && '1' === $_GET['et_fb'];
 	}
 
 	/**
@@ -465,6 +568,14 @@ class DCT_Media_Testimonial_Slider_Module extends ET_Builder_Module {
 			return '';
 		}
 
+		if ( $this->dct_is_visual_builder_preview() ) {
+			return sprintf(
+				'<div class="dct-mts__video-vb-placeholder"><span class="dct-mts__video-vb-label">%1$s</span> <span class="dct-mts__video-vb-url">%2$s</span></div>',
+				esc_html__( 'Video — full player shows on the live page.', 'divi-custom-testimonial' ),
+				esc_html( $url )
+			);
+		}
+
 		$embed = wp_oembed_get(
 			$url,
 			array(
@@ -496,7 +607,12 @@ class DCT_Media_Testimonial_Slider_Module extends ET_Builder_Module {
 	 * @return string
 	 */
 	public function render( $attrs, $content = null, $render_slug = '' ) {
-		$slides = $this->parse_slides( isset( $attrs['slides'] ) ? $attrs['slides'] : '' );
+		$slides_raw = isset( $attrs['slides'] ) ? $attrs['slides'] : '';
+		if ( ( '' === $slides_raw || null === $slides_raw ) && isset( $this->props['slides'] ) ) {
+			$slides_raw = $this->props['slides'];
+		}
+
+		$slides = $this->parse_slides( $slides_raw );
 
 		if ( empty( $slides ) ) {
 			return '';
@@ -602,16 +718,25 @@ class DCT_Media_Testimonial_Slider_Module extends ET_Builder_Module {
 				<div class="swiper-wrapper">
 					<?php
 					foreach ( $slides as $index => $slide ) {
-						$slide      = is_array( $slide ) ? $slide : array();
-						$media_type = isset( $slide['media_type'] ) && 'video' === $slide['media_type'] ? 'video' : 'image';
+						$slide = is_array( $slide ) ? $slide : array();
 
-						$quote      = isset( $slide['quote_text'] ) ? $slide['quote_text'] : '';
-						$author     = isset( $slide['author_name'] ) ? $slide['author_name'] : '';
-						$subtitle   = isset( $slide['author_subtitle'] ) ? $slide['author_subtitle'] : '';
-						$btn_text   = isset( $slide['button_text'] ) ? $slide['button_text'] : '';
-						$btn_url    = isset( $slide['button_url'] ) ? $slide['button_url'] : '';
-						$video_url  = isset( $slide['video_url'] ) ? $slide['video_url'] : '';
-						$image_val  = isset( $slide['image'] ) ? $slide['image'] : '';
+						$media_type_raw = $this->dct_slide_get( $slide, 'media_type' );
+						$media_type     = is_string( $media_type_raw ) && 'video' === strtolower( trim( $media_type_raw ) ) ? 'video' : 'image';
+
+						$quote     = $this->dct_slide_get( $slide, 'quote_text' );
+						$author    = $this->dct_slide_get( $slide, 'author_name' );
+						$subtitle  = $this->dct_slide_get( $slide, 'author_subtitle' );
+						$btn_text  = $this->dct_slide_get( $slide, 'button_text' );
+						$btn_url   = $this->dct_slide_get( $slide, 'button_url' );
+						$video_url = $this->dct_slide_get( $slide, 'video_url' );
+						$image_val = $this->dct_normalize_image_value( $this->dct_slide_get( $slide, 'image' ) );
+
+						$quote    = is_string( $quote ) ? $quote : '';
+						$author   = is_string( $author ) ? $author : '';
+						$subtitle = is_string( $subtitle ) ? $subtitle : '';
+						$btn_text = is_string( $btn_text ) ? $btn_text : '';
+						$btn_url  = is_string( $btn_url ) ? $btn_url : '';
+						$video_url = is_string( $video_url ) ? $video_url : '';
 
 						$slide_label = sprintf(
 							/* translators: %d: slide number */
