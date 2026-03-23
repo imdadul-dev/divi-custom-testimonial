@@ -6,9 +6,9 @@ The plugin:
 
 - Loads on `et_builder_ready` and falls back to `wp_loaded` if the builder fired in an unusual order.
 - Registers CSS/JS on `plugins_loaded` so assets exist before Divi lazy-loads shortcodes or the Visual Builder iframe.
-- Enqueues assets for the FB iframe via `et_fb_enqueue_assets` and a `wp_enqueue_scripts` check for common FB helpers / `et_fb` query flag.
+- Enqueues assets for the FB iframe via `et_fb_enqueue_assets`. The module’s `render()` also calls `wp_enqueue_*` when the module outputs, so front end and VB previews still get CSS/JS.
 - Uses `vb_support = partial` (PHP/AJAX preview) so a separate React bundle is not required across Divi versions.
-- Calls `parent::init()` when the parent `ET_Builder_Module` defines `init`, matching Divi’s lifecycle in different releases.
+- Does **not** call `parent::init()` before setting `slug` / `name` — doing so can register an invalid module and make the Visual Builder fail to load.
 
 Use the **Divi theme** or **Divi Builder** plugin from Elegant Themes; third-party “Divi” forks are not supported.
 

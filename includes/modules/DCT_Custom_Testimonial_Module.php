@@ -13,13 +13,12 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 
 	/**
 	 * Module init.
+	 *
+	 * Do not call parent::init() before slug/name are set — ET_Builder_Module registers the
+	 * module during init; an empty slug breaks the Visual Builder. Custom modules typically
+	 * only assign properties here (Elegant Themes pattern).
 	 */
 	public function init() {
-		$parent = get_parent_class( $this );
-		if ( $parent && method_exists( $parent, 'init' ) ) {
-			parent::init();
-		}
-
 		$this->name      = esc_html__( 'Custom Testimonial', 'divi-custom-testimonial' );
 		$this->plural    = esc_html__( 'Custom Testimonials', 'divi-custom-testimonial' );
 		$this->slug       = 'dct_custom_testimonial';

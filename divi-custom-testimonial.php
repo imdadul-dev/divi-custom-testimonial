@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Divi Custom Testimonial
  * Description: A testimonial slider module for Divi with image, quote, author, and call-to-action—matching a clean split layout with navigation arrows.
- * Version: 1.4.0
+ * Version: 1.4.1
  * Author: Custom
  * Text Domain: divi-custom-testimonial
  * Requires at least: 5.8
@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'DCT_VERSION', '1.4.0' );
+define( 'DCT_VERSION', '1.4.1' );
 define( 'DCT_PLUGIN_FILE', __FILE__ );
 define( 'DCT_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'DCT_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -41,27 +41,6 @@ add_action( 'wp_loaded', 'dct_maybe_load_module_fallback', 99 );
  * Visual Builder (iframe) — hook exists in Divi 4+ FB.
  */
 add_action( 'et_fb_enqueue_assets', 'dct_enqueue_visual_builder_assets' );
-
-/**
- * VB preview when `et_fb` is present or Divi helper reports FB active.
- */
-add_action(
-	'wp_enqueue_scripts',
-	static function () {
-		$vb = false;
-		if ( function_exists( 'et_core_is_fb_enabled' ) && et_core_is_fb_enabled() ) {
-			$vb = true;
-		} elseif ( function_exists( 'et_fb_is_enabled' ) && et_fb_is_enabled() ) {
-			$vb = true;
-		} elseif ( isset( $_GET['et_fb'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			$vb = true;
-		}
-		if ( $vb ) {
-			dct_enqueue_visual_builder_assets();
-		}
-	},
-	999
-);
 
 /**
  * Admin notice when Divi Builder is not available.
