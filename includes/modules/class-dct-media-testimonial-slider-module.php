@@ -510,7 +510,8 @@ class DCT_Media_Testimonial_Slider_Module extends ET_Builder_Module {
 
 	/**
 	 * True when output is for Divi Visual Builder preview (not the live front end).
-	 * Raw oEmbed iframes here often break Divi's React layer (e.g. rawContentProcesser path).
+	 * Full module markup (Swiper data-JSON, oEmbed iframes, etc.) breaks Divi's React preview
+	 * (errors surface as minified code mentioning rawContentProcesser / replaceCodeContentEntities).
 	 *
 	 * @return bool
 	 */
@@ -519,8 +520,80 @@ class DCT_Media_Testimonial_Slider_Module extends ET_Builder_Module {
 			return true;
 		}
 
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only builder bootstrap flag.
-		return isset( $_GET['et_fb'] ) && '1' === $_GET['et_fb'];
+		if ( function_exists( 'et_fb_is_enabled' ) && et_fb_is_enabled() ) {
+			return true;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only builder bootstrap flags.
+		if ( isset( $_GET['et_fb'] ) && '1' === $_GET['et_fb'] ) {
+			return true;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( isset( $_GET['et_pb_preview'] ) && 'true' === $_GET['et_pb_preview'] ) {
+			return true;
+		}
+
+		// Some iframe/AJAX loads omit the functions above; referer still points at the VB parent.
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotValidated
+		if ( ! empty( $_SERVER['HTTP_REFERER'] ) && is_string( $_SERVER['HTTP_REFERER'] ) ) {
+			$ref = wp_unslash( $_SERVER['HTTP_REFERER'] );
+			if ( strpos( $ref, 'et_fb=1' ) !== false || strpos( $ref, 'et_fb=on' ) !== false ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Minimal, React-safe markup for the Visual Builder canvas only.
+	 *
+	 * @param array $attrs  Module attributes.
+	 * @param array $slides Parsed slides list.
+	 * @return string
+	 */
+	protected function render_visual_builder_preview( $attrs, $slides ) {
+		$slides = is_array( $slides ) ? $slides : array();
+		$count  = count( $slides );
+
+		ob_start();
+		?>
+		<div class="dct-mts dct-mts--vb-preview">
+			<div class="dct-mts__vb-title"><?php esc_html_e( 'Media Testimonial Slider', 'divi-custom-testimonial' ); ?></div>
+			<?php if ( $count < 1 ) : ?>
+				<p class="dct-mts__vb-hint"><?php esc_html_e( 'Add slides in the module settings (Slides → Add Slide). The full slider appears on the live page.', 'divi-custom-testimonial' ); ?></p>
+			<?php else : ?>
+				<ul class="dct-mts__vb-list">
+					<?php
+					foreach ( $slides as $idx => $slide ) {
+						$quote = $this->dct_slide_get( $slide, 'quote_text' );
+						$quote = is_string( $quote ) ? wp_strip_all_tags( $quote ) : '';
+						$quote = trim( $quote );
+
+						if ( function_exists( 'mb_substr' ) ) {
+							$quote = $quote ? mb_substr( $quote, 0, 140 ) : '';
+						} else {
+							$quote = $quote ? substr( $quote, 0, 140 ) : '';
+						}
+
+						if ( '' === $quote ) {
+							$quote = sprintf(
+								/* translators: %d: slide number */
+								__( 'Slide %d', 'divi-custom-testimonial' ),
+								(int) $idx + 1
+							);
+						}
+
+						echo '<li class="dct-mts__vb-item">' . esc_html( $quote ) . '</li>';
+					}
+					?>
+				</ul>
+				<p class="dct-mts__vb-note"><?php esc_html_e( 'Preview simplified in the builder. Open the site to see images, video, and Swiper.', 'divi-custom-testimonial' ); ?></p>
+			<?php endif; ?>
+		</div>
+		<?php
+		return ob_get_clean();
 	}
 
 	/**
@@ -613,6 +686,10 @@ class DCT_Media_Testimonial_Slider_Module extends ET_Builder_Module {
 		}
 
 		$slides = $this->parse_slides( $slides_raw );
+
+		if ( $this->dct_is_visual_builder_preview() ) {
+			return $this->render_visual_builder_preview( $attrs, $slides );
+		}
 
 		if ( empty( $slides ) ) {
 			return '';

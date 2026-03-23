@@ -4,6 +4,44 @@
  * @package DiviCustomTestimonial
  */
 
+/* Visual Builder: minimal preview (avoids Divi React / rawContentProcesser crashes). */
+.dct-mts--vb-preview {
+	padding: 1rem 1.25rem;
+	border-radius: var(--dct-mts-radius);
+	background: rgba(0, 0, 0, 0.04);
+	border: 1px dashed rgba(0, 0, 0, 0.12);
+}
+
+.dct-mts__vb-title {
+	font-weight: 700;
+	margin-bottom: 0.75rem;
+	font-size: 15px;
+}
+
+.dct-mts__vb-hint,
+.dct-mts__vb-note {
+	margin: 0;
+	font-size: 13px;
+	line-height: 1.5;
+	opacity: 0.9;
+}
+
+.dct-mts__vb-note {
+	margin-top: 0.75rem;
+	font-style: italic;
+}
+
+.dct-mts__vb-list {
+	margin: 0;
+	padding-left: 1.25rem;
+	font-size: 13px;
+	line-height: 1.45;
+}
+
+.dct-mts__vb-item + .dct-mts__vb-item {
+	margin-top: 0.35rem;
+}
+
 .dct-mts {
 	--dct-mts-quote-icon: #c5a47e;
 	--dct-mts-content-color: inherit;
