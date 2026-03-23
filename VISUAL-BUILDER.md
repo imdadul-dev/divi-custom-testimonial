@@ -6,7 +6,7 @@ The plugin:
 
 - Loads on `et_builder_ready` and falls back to `wp_loaded` if the builder fired in an unusual order.
 - Registers CSS/JS on `plugins_loaded` so assets exist before Divi lazy-loads shortcodes or the Visual Builder iframe.
-- Enqueues assets for the FB iframe via `et_fb_enqueue_assets`. The module’s `render()` also calls `wp_enqueue_*` when the module outputs, so front end and VB previews still get CSS/JS.
+- Enqueues assets for the FB iframe via `et_fb_enqueue_assets`. On **non-AJAX** page loads, `render()` enqueues CSS/JS for the front end; during **admin-ajax** VB previews it skips enqueues to reduce load (see “Builder feels slow or times out” below).
 - Uses `vb_support = partial` (PHP/AJAX preview) so a separate React bundle is not required across Divi versions.
 - Does **not** call `parent::init()` before setting `slug` / `name` — doing so can register an invalid module and make the Visual Builder fail to load.
 
@@ -34,3 +34,9 @@ That was usually the same **VB + `on` mismatch**: the settings UI did not behave
 ## Backend builder
 
 If you ever need the classic Divi backend builder, modules with `partial` still work there; settings are the same.
+
+## Builder feels slow or times out
+
+Partial modules trigger **many admin-ajax previews** while you edit. This plugin **does not** call `wp_enqueue_*` during those AJAX renders (assets are loaded in the Visual Builder frame via `et_fb_enqueue_assets` and on normal front-end page loads). Field definitions are also **cached in memory** per request so Divi is not rebuilding large arrays on every callback.
+
+If timeouts continue, they are usually **host limits** (PHP `max_execution_time`, FastCGI read timeout, ModSecurity) or **other plugins**—raise timeouts or check the server error log while reproducing the issue.

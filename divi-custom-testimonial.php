@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Divi Custom Testimonial
  * Description: A testimonial slider module for Divi with image, quote, author, and call-to-action—matching a clean split layout with navigation arrows.
- * Version: 1.4.1
+ * Version: 1.4.2
  * Author: Custom
  * Text Domain: divi-custom-testimonial
  * Requires at least: 5.8
@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'DCT_VERSION', '1.4.1' );
+define( 'DCT_VERSION', '1.4.2' );
 define( 'DCT_PLUGIN_FILE', __FILE__ );
 define( 'DCT_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'DCT_PLUGIN_URL', plugin_dir_url( __FILE__ ) );

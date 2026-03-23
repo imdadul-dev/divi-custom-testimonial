@@ -103,7 +103,12 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 	 * @return array
 	 */
 	public function get_advanced_fields_config() {
-		return array(
+		static $config = null;
+		if ( null !== $config ) {
+			return $config;
+		}
+
+		$config = array(
 			'fonts'          => array(
 				'quote'  => array(
 					'label'          => esc_html__( 'Quote', 'divi-custom-testimonial' ),
@@ -199,6 +204,8 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 				),
 			),
 		);
+
+		return $config;
 	}
 
 	/**
@@ -309,7 +316,12 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 	 * @return array
 	 */
 	public function get_fields() {
-		return array_merge(
+		static $fields = null;
+		if ( null !== $fields ) {
+			return $fields;
+		}
+
+		$fields = array_merge(
 			$this->dct_get_plain_testimonial_fields(),
 			array(
 			'accent_color'        => array(
@@ -745,6 +757,8 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 			),
 			)
 		);
+
+		return $fields;
 	}
 
 	/**
@@ -1185,6 +1199,23 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 	}
 
 	/**
+	 * Enqueue CSS/JS on real page loads. Skip during admin-ajax: Divi partial modules render
+	 * previews via AJAX often; wp_enqueue_* does not print there but still resolves the global
+	 * script queue and can add noticeable latency (timeouts on slow hosts).
+	 *
+	 * @return void
+	 */
+	protected function dct_maybe_enqueue_frontend_assets() {
+		if ( wp_doing_ajax() ) {
+			return;
+		}
+
+		dct_register_assets();
+		wp_enqueue_style( 'dct-custom-testimonial' );
+		wp_enqueue_script( 'dct-custom-testimonial' );
+	}
+
+	/**
 	 * Render module output.
 	 *
 	 * @param array  $attrs       Attributes.
@@ -1193,8 +1224,7 @@ class DCT_Custom_Testimonial_Module extends ET_Builder_Module {
 	 * @return string
 	 */
 	public function render( $attrs, $content = null, $render_slug = null ) {
-		wp_enqueue_style( 'dct-custom-testimonial' );
-		wp_enqueue_script( 'dct-custom-testimonial' );
+		$this->dct_maybe_enqueue_frontend_assets();
 
 		$slides = $this->dct_get_slides();
 
